@@ -1,0 +1,17 @@
+Training Network Configuration
+
+SRV2019-DC
+10.0.0.20
+
+SRV2019-1
+Primary –   10.0.0.30
+
+Cluster –    192.168.0.10
+SRV2019-2
+
+Primary :  10.0.0.40
+Cluster:    192.168.0.20
+iSCSI Storage : 10.0.0.100
+
+Cluster Name – XTCLUSTER
+Cluster IP Address – 10.0.0.110

@@ -1,0 +1,7 @@
+FirstName;LastName;SamAccountName;Phone;Department;JobTitle;Password;OU
+Jean;Albert;u1;6123456;finances;comptable;hyper/1;"OU=_Groups;DC=labs;DC=local"
+Jeanne;huette;u2;6123456;finances;comptable;hyper/1;"OU=_Groups;DC=labs;DC=local"
+Alain;Pic;u3;6123456;finances;expert-comptable;hyper/1;"OU=_Groups;DC=labs;DC=local"
+Anne;Cholet;u4;3123456;Dev;assistante;hyper/1;"OU=_Groups;DC=labs;DC=local"
+Marius;Tulle;a1;123456;Dev;admin reseau;hyper/1;"OU=_Groups;DC=labs;DC=local"
+Lise;Toulon;a2;123456;Dev;analyste;hyper/1;"OU=_Groups;DC=labs;DC=local"

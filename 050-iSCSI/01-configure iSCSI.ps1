@@ -1,0 +1,1 @@
+﻿Install-WindowsFeature -Name FS-Fileserver, FS-iSCSITarget-Server

@@ -1,0 +1,6 @@
+GroupName;GroupCategory;GroupScope;OU
+Finances;Security;Global;"OU=_Groups;DC=labs;DC=local"
+Dev;Security;Global;"OU=_Groups;DC=labs;DC=local"
+IT;Security;Global;"OU=_Groups;DC=labs;DC=local"
+HR;Security;Global;"OU=_Groups;DC=labs;DC=local"
+Executive;Security;Global;"OU=_Groups;DC=labs;DC=local"

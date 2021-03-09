@@ -1,0 +1,162 @@
+étape par étape Windows Server 2019 clustering de serveurs de fichiers avec PowerShell ou GUI #Cluster #HA #Azure #WindowsAdminCenter # WindowsServer2019   10 commentaires
+
+L'installation du cluster est maintenant facile. Mais juste pour cela, je poste un petit blog sur la façon de le faire, dans mes statistiques de blog, cela montre que le message de 2012 est toujours très actif, alors il est temps pour une mise à jour de Windows Server 2019. dans la création, il n'y a pas beaucoup de changement, il devient seulement plus facile. mais si vous n'êtes toujours pas dans PowerShell, vous avez obtenu plus de clics pour faire moins de café. Et Windows Admin Center est également un excellent ajout pour gérer un cluster. Cet article de blog est également utilisable dans Azure. Vous devez uniquement ajouter Storagespacesdirect et un partage de fichiers CSV. 
+
+Installez simplement un serveur Windows 2019 sans système d'exploitation (VM) et effectuez une jointure de domaine et le plaisir peut commencer.
+
+Installation de la fonction de cluster dans PowerShell
+
+Install-WindowsFeature –Name Failover-Clustering –IncludeManagementTools
+
+#Créer un rapport de validation de cluster
+Test-Cluster -Node MVP19-01, MVP19-02
+
+#Créer un nouveau cluster
+New-Cluster -Name MVP1911-27 -Node MVP19-01, MVP19-02 -NoStorage -StaticAddress "10.255.255.45"
+
+#place le fichier témoin sur le périphérique USB depuis mon routeur
+
+Set-ClusterQuorum -FileShareWitness \\ SERVER \ SHARE -Credential $ (Get-Credential)
+
+Maintenant que le cluster de base est prêt, nous commençons avec le partage HA
+
+image
+
+Améliorations apportées au témoin de partage de fichiers Nous avons activé l'utilisation d'un témoin de partage de fichiers dans les scénarios suivants:
+
+    Accès Internet absent ou extrêmement médiocre en raison d'un emplacement distant, empêchant l'utilisation d'un témoin cloud.
+    Manque de lecteurs partagés pour un témoin de disque. Il peut s'agir d'une configuration hyperconvergée Storage Spaces Direct, d'un groupe de disponibilité AlwaysOn SQL Server ou d'un groupe de disponibilité de base de données Exchange (DAG), dont aucun n'utilise de disques partagés.
+    Absence de connexion de contrôleur de domaine en raison du cluster se trouvant derrière une DMZ.
+
+    Groupe de travail ou cluster interdomaine pour lequel il n'existe aucun objet de nom de cluster Active Directory (CNO). Pour en savoir plus sur ces améliorations, consultez l'article suivant dans les blogs sur le serveur et la gestion: Témoin de partage de fichiers de cluster de basculement et DFS.
+
+    Nous bloquons désormais également explicitement l'utilisation d'un partage d'espaces de noms DFS comme emplacement. L'ajout d'un témoin de partage de fichiers à un partage DFS peut entraîner des problèmes de stabilité pour votre cluster et cette configuration n'a jamais été prise en charge. Nous avons ajouté une logique pour détecter si un partage utilise des espaces de noms DFS et si des espaces de noms DFS sont détectés, le gestionnaire de cluster de basculement bloque la création du témoin et affiche un message d'erreur indiquant qu'il n'est pas pris en charge.
+
+c'est ça le cluster est créé, on peut commencer avec le serveur de fichiers
+
+Vient ensuite l'installation du rôle de serveur de fichiers
+
+image
+
+Un redémarrage est nécessaire! Après le redémarrage, nous pouvons créer le cluster avec le partage de fichiers HA
+
+$ servers = ("MVP19-01", "MVP19-02") 
+foreach ($ server dans $ servers) {Install-WindowsFeature -Name file-services -ComputerName $ server}
+
+Maintenant que le rôle de serveur de fichiers est ajouté, nous pouvons ajouter le disque. Ou utilisez un disque que vous avez déjà ajouté auparavant.
+
+Nous devons d'abord ajouter un disque, cela peut être fait dans le gestionnaire de cluster de basculement ou avec PowerShell
+
+image image
+
+Get-ClusterAvailableDisk | Add-ClusterDisk
+
+image
+
+Les rôles sont là et le disque est ajouté
+
+imageimage
+
+L'étape suivante consiste à ajouter le rôle de serveur de fichiers au cluster et à ajouter le partage de fichiers HA.
+
+Dans ce cas, j'ai un disque de basculement et j'utilise le serveur de fichiers pour une utilisation générale.
+
+image
+
+image image
+
+Ainsi, lors de l'ajout du disque, il n'affiche pas le disque. Il s'agit du disque ajouté au cluster mais le disque n'est pas formaté!
+
+image
+
+N'oubliez pas que le formatage du disque de cluster lorsqu'il est en ligne n'est pas possible. Vous devez mettre le disque en mode maintenance, sinon le format échouera.
+
+image image
+
+Donc, après le formatage du disque, nous verrons le disque apparaître et nous pourrons l'ajouter au serveur de fichiers
+
+ 
+
+imageimage
+
+Après cela, le serveur de fichiers est opérationnel. Comme vous pouvez le voir, la configuration est intense à l'écran, la construction avec PowerShell est beaucoup plus rapide.
+
+Powershell
+
+add-ClusterFileServerRole -Storage "Cluster Disk 1" -Name MyFiles
+
+New-SmbShare -Name "Data" -Path "J: \ Data" -EncryptData $ True
+
+Étapes rapides avec PowerShell et même le partage est créé et chiffré
+
+image
+
+L'étape suivante consiste à ajouter le partage de fichiers.
+
+image
+
+optez pour la configuration rapide
+
+imageimage
+
+Choisissez le disque et sélectionnez le dossier avec les données sur le disque, s'il n'y a pas de données, créez un dossier qui contiendra les données plus tard.
+
+image
+
+comme vous pouvez voir le chemin UNC du serveur de fichiers.
+
+image image
+
+Comme vous pouvez le voir, les paramètres peuvent être ajustés pour vos besoins et également définir le bon accès, et gardez à l'esprit que cela doit être fait au niveau du cluster!
+
+image
+
+Terminé
+
+image
+
+La création d'un serveur de fichiers et de 2 partages de fichiers nécessite donc beaucoup de clics si vous n'utilisez pas PowerShell.
+
+Mais qu'en est-il du Centre d'administration Windows ? oui, ce serait également une option, sauf qu'ici, vous ne pouvez pas créer de rôle de cluster.
+
+gestion des clusters dans Windows Admin Center
+
+image
+
+Vous pouvez créer un nouveau rôle mais pas de serveur de fichiers / partage, etc.
+
+Mais lorsque le partage est créé et fonctionne comme maintenant, vous pouvez utiliser le Centre d'administration Windows pour migrer les données vers le partage de fichiers.
+
+image
+
+Mais de plus en plus d'options arrivent dans le Centre d'administration Windows ci-dessous sont quelques liens que vous pouvez utiliser pour ajouter votre demande à UserVoice
+
+https://docs.microsoft.com/en-us/windows-server/manage/windows-admin-center/use/manage-failover-clusters
+Plus à venir
+
+La gestion du cluster de basculement dans Windows Admin Center est activement en cours de développement et de nouvelles fonctionnalités seront ajoutées dans un proche avenir. Vous pouvez afficher l'état et voter pour les fonctionnalités de UserVoice:
+
+Demande de fonctionnalité
+
+Afficher plus d'informations sur les disques en cluster
+
+Prise en charge d'actions de cluster supplémentaires
+
+Prise en charge des clusters convergés exécutant Hyper-V et Scale-Out File Server sur différents clusters
+
+Afficher le cache de bloc CSV
+
+Voir tout ou proposer de nouvelles fonctionnalités
+
+++++++++++++++++
+
+ 
+
+Suivez-moi sur Twitter @ClusterMVP
+
+Suivez mon blog https://robertsmit.wordpress.com
+
+Profil Linkedin Robert Smit MVP Profil Linkedin
+
+Google: profil de Robert Smit MVP
+Évaluer ce:

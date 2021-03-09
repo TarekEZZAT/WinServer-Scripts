@@ -1,0 +1,6 @@
+Errors in bulk users creation
+Sounds like an issue on your OU path in the CSV file.  Make sure you put quotes around the OU path, and make sure your OU path does not have the user CN (Sounds like you have it  based on your error).  For example
+
+Name,Container,Logon Username,AccountPassword,First Name
+Jimmy Two,"OU=Company A,OU=User,DC=domain,DC=local",jtwo,Password1234,Jimmy
+

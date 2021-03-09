@@ -1,0 +1,12 @@
+iSCSI Target Role
+
+
+
+1/    Choose the Role-based or feature-based installation option.
+2/    Select the server you want to enable iSCSI Target.
+3/    Select the iSCSI Target Role. Select “File Server” Role and “iSCSI Target Server” role.
+4/    Confirm the installation.
+
+
+
+

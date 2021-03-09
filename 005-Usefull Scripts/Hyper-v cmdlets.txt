@@ -1,0 +1,13 @@
+# Hyper-v cmdlets
+
+$ Create checkpoint
+Get-VM "ubuntu desktop" | Checkpoint-VM -SnapshotName 'Starting Point'
+
+# Revert
+Get-VM "ubuntu desktop" | 
+    Get-VMSnapshot -Name 'Starting Point' | 
+        Restore-VMSnapshot -Confirm:$false
+		
+		
+
+

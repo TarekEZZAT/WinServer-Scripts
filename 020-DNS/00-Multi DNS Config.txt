@@ -1,0 +1,3 @@
+Multi DNS Config
+
+Each DNS Server should point to the other as primary and itself as secondary.

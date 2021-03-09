@@ -1,0 +1,13 @@
+How do I enable DNS round robin resolution?
+
+
+
+A. Recent Windows NT service packs introduced LocalNetPriority which tries to return Host resources that are local to the requestor instead of using round robin however round robin can be enabled as follows:
+
+    Start the registry editor (regedit.exe)
+    Move to HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\DNS\Parameters
+    From the Edit menu select New - DWORD Value
+    Enter a name of LocalNetPriority and press Enter
+    Double click the new value and set to 0 to disable LocalNetPriority and re-enable round robin. Click OK
+    Close the registry editor
+    Stop and restart the DNS service
